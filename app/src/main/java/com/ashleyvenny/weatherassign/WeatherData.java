@@ -1,6 +1,7 @@
 package com.ashleyvenny.weatherassign;
 
 import android.location.Location;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,8 +17,8 @@ public class WeatherData {
     private day[] tenDay;
 
 public WeatherData(){
-        cityInfo=null;
-        tenDay=null;
+             cityInfo=new city();
+            tenDay=new day[10];
     }
 
 
@@ -26,15 +27,18 @@ public WeatherData(){
         //separate the data in to the objects and array
 
         JSONObject JObj = new JSONObject(data);
-        JSONObject JcoordInfo = getObject("coord",JObj);
+        //Log.d("Parsing",data);
+
         JSONObject Jcityinfo = getObject("city",JObj);
-        JSONArray tenday = JObj.getJSONArray("weather");
+        JSONObject JcoordInfo = getObject("coord",Jcityinfo);
+        JSONArray tenday = JObj.getJSONArray("list");
         cityInfo=new city();
 
 
         try {
             //the city info part of the Data
             cityInfo.setCoord(getDouble("lon",JcoordInfo),getDouble("lat",JcoordInfo));
+            Log.d("Long and Lat",Double.toString(cityInfo.getCoord().getLat()) + " " +Double.toString(cityInfo.getCoord().getLat()));
             cityInfo.setName(getString("name", Jcityinfo));
             cityInfo.setCountry(getString("country",Jcityinfo));
             cityInfo.setPopul(getInt("population",Jcityinfo));
@@ -123,6 +127,7 @@ public WeatherData(){
             oneday.setWindDirect(getDouble("deg",JSONWeather));
             oneday.setCloudPercent(getDouble("clouds",JSONWeather));
 
+            Log.d("MAKING LIST",oneday.getWeather().getWeatherDes());
 
             tenDay[x] = oneday;
         }

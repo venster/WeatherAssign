@@ -2,6 +2,8 @@ package com.ashleyvenny.weatherassign;
 
 import android.content.Context;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.provider.SyncStateContract;
 import android.support.v7.app.ActionBarActivity;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,11 +33,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    private TextView cityText;
+    TextView cityText;
     private TextView temp;
     private TextView weathertext;
     private TextView weatherDes;
-    private coordinate coord;
+    private coordinate coord=new coordinate(0,0);
+    private Button button;
     HttpURLConnection connection = null;
     WeatherData weather;
 
@@ -48,73 +52,49 @@ public class MainActivity extends ActionBarActivity {
         temp = (TextView) findViewById(R.id.textViewTemp);
         weathertext = (TextView) findViewById(R.id.textViewDescrip);
         weatherDes = (TextView) findViewById(R.id.textViewDescrip2);
+        button= (Button) findViewById(R.id.button);
 
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates (LocationManager.GPS_PROVIDER, 0, 0,locationListener);
-        Log.i("TESTING", "HERE");
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startLoadTask(MainActivity.this);
+            }
+        });
+
+
+
+
+
+
+    }
+    public void startLoadTask(Context c){
+        if (isOnline()) {
+            LoadData task = new LoadData();
+            task.execute();
+        } else {
+            Toast.makeText(c, "Not online", Toast.LENGTH_LONG).show();
+        }
     }
 
+    public boolean isOnline() {
+        ConnectivityManager connectivityManager = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
+    }
     LocationListener locationListener = new LocationListener() {
         @Override
         //Get GPS Information here
         public void onLocationChanged(Location location) {
-            coord=new coordinate(location.getLongitude(),location.getLatitude());
-            cityText.setText(Double.toString(coord.getLat()));
+            coord.setLat(location.getLatitude());
+            coord.setLong(location.getLongitude());
+            //weathertext.setText(Double.toString(coord.getLat()));
             temp.setText(Double.toString(location.getLatitude()));
 
-            System.out.print("TESTING"+location.getLongitude());
-            Log.i("TESTING", Double.toString(location.getLongitude()));
 
-            String BASE_URL= "http://api.openweathermap.org/data/2.5/forecast/daily?lat=";
-            String BASE_URL2="&lon=";
-            String BASE_URL3="&cnt=10&mode=json&units=imperial";
-
-//            String dataString = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api+key=" +
-//                   Constants.API_KEY + "&per_page=" + Constants.NUM_PHOTOS + "&format=json&nojsoncallback=1";
-
-            //TRY TO CALL API.  Does not work because Coordinate cannot find GPS
-            try {
-                URL dataUrl = new URL(BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
-                System.out.println(BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
-                connection = (HttpURLConnection) dataUrl.openConnection();
-                connection.connect();
-                int status = connection.getResponseCode();
-                Log.d("TAG", "status " + status);
-                //if it is successful
-                if (status == 200) {
-                    InputStream is = connection.getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                    String responseString;
-                    StringBuilder sb = new StringBuilder();
-
-                    while ((responseString = reader.readLine()) != null) {
-                        sb = sb.append(responseString);
-                    }
-                    String photoData = sb.toString();
-
-                    // weather.parseInfo(photoData);
-
-
-                    //return 0l;
-                } else {
-                    //return 1l;
-                }
-            } catch (MalformedURLException e) {
-
-                e.printStackTrace();
-                //return 1l;
-            } catch (IOException e) {
-                e.printStackTrace();
-                //return 1l;
-            }/* catch (JSONException e) {
-            e.printStackTrace();
-           // return 1l;
-        } */finally {
-                if (connection != null)
-                    connection.disconnect();
-            }
-
-            cityText.setText(weather.getCityInfo().getName());
 
         }
 
@@ -148,9 +128,9 @@ public class MainActivity extends ActionBarActivity {
 
         }
     };
-/*    private class LoadPhotos extends AsyncTask<String, Long, Long> {
+    private class LoadData extends AsyncTask<String, Long, Long> {
         HttpURLConnection connection = null;
-        WeatherData weather;
+        WeatherData weather = new WeatherData();
 
         @Override
         protected void onPreExecute() {
@@ -173,10 +153,11 @@ public class MainActivity extends ActionBarActivity {
 
         try {
             URL dataUrl = new URL(BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
+            Log.d("URL",BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
             connection = (HttpURLConnection) dataUrl.openConnection();
             connection.connect();
             int status = connection.getResponseCode();
-            Log.d("TAG", "status " + status);
+            //Log.d("TAG", "status " + status);
             //if it is successful
             if (status == 200) {
                 InputStream is = connection.getInputStream();
@@ -189,7 +170,10 @@ public class MainActivity extends ActionBarActivity {
                 }
                 String photoData = sb.toString();
 
+               // Log.d("TAG", photoData);
                 weather.parseInfo(photoData);
+
+                Log.d("AFTER PARSE", weather.getDay(1).getWeather().getWeatherStat());
 
 
                 return 0l;
@@ -204,6 +188,7 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
             return 1l;
         } catch (JSONException e) {
+            Log.d("TAG", "failparse");
             e.printStackTrace();
             return 1l;
         } finally {
@@ -211,22 +196,25 @@ public class MainActivity extends ActionBarActivity {
                 connection.disconnect();
         }
 
-    }*/
-        /*@Override
+    }
+        @Override
         protected void onPostExecute(Long result) {
             if (result != 1l) {
-                DataBaseHelper dbHelper = new DataBaseHelper(getApplicationContext());
+                cityText.setText(weather.getCityInfo().getName());
+                weathertext.setText(weather.getDay(0).getWeather().getWeatherStat());
+                weatherDes.setText(weather.getDay(1).getWeather().getWeatherDes());
+                /*DataBaseHelper dbHelper = new DataBaseHelper(getApplicationContext());
                 dbHelper.clearTable();
                 dbHelper.addRows(photos);
                 dbHelper.close();
-                showList();
+                showList();*/
 
             } else {
                 Toast.makeText(getApplicationContext(), "AsyncTask didn't complete", Toast.LENGTH_LONG).show();
             }
-            progress.setVisibility(View.GONE);
-        }*/
-  //  }
+            //progress.setVisibility(View.GONE);
+        }
+    }
 
 
     @Override

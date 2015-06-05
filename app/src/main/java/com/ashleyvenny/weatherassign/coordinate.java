@@ -7,6 +7,11 @@ public class coordinate {
     double longi;
     double lat;
 
+    public coordinate ()
+    {
+        longi=0;
+        lat=0;
+    }
     public coordinate(double longi, double lat){
         this.longi=longi;
         this.lat=lat;
