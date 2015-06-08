@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Created by ashleyvo on 5/30/15.
  */
@@ -14,11 +16,11 @@ public class WeatherData {
 
 
     private city cityInfo;
-    private day[] tenDay;
+    private ArrayList<day> tenDay;
 
 public WeatherData(){
              cityInfo=new city();
-            tenDay=new day[10];
+            tenDay=new ArrayList<day>();
     }
 
 
@@ -54,15 +56,16 @@ public WeatherData(){
 
     }
 
+
     public city getCityInfo() {
         return cityInfo;
     }
 
     public day getDay(int x) {
-        return tenDay[x];
+        return tenDay.get(x);
     }
 
-    public day[] getTenDay() {
+    public ArrayList<day> getTenDay() {
         return tenDay;
     }
 
@@ -85,7 +88,7 @@ public WeatherData(){
     private void createWeatherArray(JSONArray ten, int cnt) throws JSONException {
 
 
-        tenDay = new day[cnt];
+        tenDay = new ArrayList<day>();
         for(int x=0;x<cnt;x++) {
 
             //get the object of one day
@@ -127,9 +130,9 @@ public WeatherData(){
             oneday.setWindDirect(getDouble("deg",JSONWeather));
             oneday.setCloudPercent(getDouble("clouds",JSONWeather));
 
-            Log.d("MAKING LIST",oneday.getWeather().getWeatherDes());
+            Log.d("MAKING LIST", oneday.getWeather().getWeatherDes());
 
-            tenDay[x] = oneday;
+            tenDay.add(oneday);
         }
 
     }

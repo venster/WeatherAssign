@@ -12,7 +12,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.location.Location;
 import android.location.LocationListener;
@@ -29,6 +32,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -40,7 +44,12 @@ public class MainActivity extends ActionBarActivity {
     private coordinate coord=new coordinate(0,0);
     private Button button;
     HttpURLConnection connection = null;
-    WeatherData weather;
+    List<day> tendays;
+
+    WeatherData weather= new WeatherData(); //all of the weather data with city info
+
+    private ProgressBar progressLoading;
+
 
 
     @Override
@@ -53,14 +62,23 @@ public class MainActivity extends ActionBarActivity {
         weathertext = (TextView) findViewById(R.id.textViewDescrip);
         weatherDes = (TextView) findViewById(R.id.textViewDescrip2);
         button= (Button) findViewById(R.id.button);
+        progressLoading = (ProgressBar) findViewById(R.id.progressBar);
 
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);
+
+
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startLoadTask(MainActivity.this);
+               /* List<day> tendays=weather.getTenDay();
+                ArrayAdapter<day> tendayArrayAdapter =
+                        new ArrayAdapter<day>(MainActivity.this,android.R.layout.simple_list_item_1,tendays);
+                ListView listview = (ListView) findViewById(android.R.id.list);
+                listview.setAdapter(tendayArrayAdapter);*/
+
             }
         });
 
@@ -92,7 +110,8 @@ public class MainActivity extends ActionBarActivity {
             coord.setLat(location.getLatitude());
             coord.setLong(location.getLongitude());
             //weathertext.setText(Double.toString(coord.getLat()));
-            temp.setText(Double.toString(location.getLatitude()));
+            //temp.setText(Double.toString(location.getLatitude()));
+            startLoadTask(MainActivity.this);
 
 
 
@@ -130,11 +149,11 @@ public class MainActivity extends ActionBarActivity {
     };
     private class LoadData extends AsyncTask<String, Long, Long> {
         HttpURLConnection connection = null;
-        WeatherData weather = new WeatherData();
+
 
         @Override
         protected void onPreExecute() {
-            //progress.setVisibility(View.VISIBLE);
+            progressLoading.setVisibility(View.VISIBLE);
             super.onPreExecute();
         }
 
@@ -201,18 +220,26 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Long result) {
             if (result != 1l) {
                 cityText.setText(weather.getCityInfo().getName());
-                weathertext.setText(weather.getDay(0).getWeather().getWeatherStat());
+                weathertext.setText(weather.getDay(1).getWeather().getWeatherStat());
                 weatherDes.setText(weather.getDay(1).getWeather().getWeatherDes());
+                temp.setText(Double.toString(weather.getDay(1).getTempDay().getDay()));
                 /*DataBaseHelper dbHelper = new DataBaseHelper(getApplicationContext());
                 dbHelper.clearTable();
                 dbHelper.addRows(photos);
                 dbHelper.close();
                 showList();*/
+                List<day> tendays=weather.getTenDay();
+                ArrayAdapter<day> tendayArrayAdapter =
+                        new ArrayAdapter<day>(MainActivity.this,android.R.layout.simple_list_item_1,tendays);
+                ListView listview = (ListView) findViewById(android.R.id.list);
+                listview.setAdapter(tendayArrayAdapter);
+
+
 
             } else {
                 Toast.makeText(getApplicationContext(), "AsyncTask didn't complete", Toast.LENGTH_LONG).show();
             }
-            //progress.setVisibility(View.GONE);
+            progressLoading.setVisibility(View.GONE);
         }
     }
 

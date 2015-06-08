@@ -75,4 +75,9 @@ public class day {
     public tempOfDay getTempDay() {
         return tempDay;
     }
+
+    public String toString()
+    {
+        return weather.getWeatherDes();
+    }
 }
