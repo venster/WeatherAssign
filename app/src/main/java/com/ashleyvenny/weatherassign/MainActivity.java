@@ -1,6 +1,9 @@
 package com.ashleyvenny.weatherassign;
 
+import android.app.Activity;
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -9,11 +12,14 @@ import android.provider.SyncStateContract;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -32,6 +38,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 
@@ -43,8 +51,12 @@ public class MainActivity extends ActionBarActivity {
     private TextView weatherDes;
     private coordinate coord=new coordinate(0,0);
     private Button button;
+
     HttpURLConnection connection = null;
     List<day> tendays;
+    private FrameLayout iconWeather;
+    URL picURL;
+
 
     WeatherData weather= new WeatherData(); //all of the weather data with city info
 
@@ -64,8 +76,12 @@ public class MainActivity extends ActionBarActivity {
         button= (Button) findViewById(R.id.button);
         progressLoading = (ProgressBar) findViewById(R.id.progressBar);
 
+        iconWeather= (FrameLayout) findViewById(R.id.wIcon);
+
+
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 50000, 10,locationListener);
+
 
 
 
@@ -88,6 +104,7 @@ public class MainActivity extends ActionBarActivity {
 
 
     }
+
     public void startLoadTask(Context c){
         if (isOnline()) {
             LoadData task = new LoadData();
@@ -112,6 +129,8 @@ public class MainActivity extends ActionBarActivity {
             //weathertext.setText(Double.toString(coord.getLat()));
             //temp.setText(Double.toString(location.getLatitude()));
             startLoadTask(MainActivity.this);
+
+
 
 
 
@@ -142,9 +161,6 @@ public class MainActivity extends ActionBarActivity {
             notEnabled.setVisibility(View.VISIBLE);
 
             sign.setImageResource(R.drawable.no_gps);*/
-
-
-
         }
     };
     private class LoadData extends AsyncTask<String, Long, Long> {
@@ -193,6 +209,12 @@ public class MainActivity extends ActionBarActivity {
                 weather.parseInfo(photoData);
 
                 Log.d("AFTER PARSE", weather.getDay(1).getWeather().getWeatherStat());
+                //make iconlist
+                for(int x=0;x<weather.getTenDay().size();x++) {
+                  picURL = new URL(weather.getDay(x).getWeather().getIcon_URL());
+                  InputStream content = (InputStream) picURL.getContent();
+                  weather.getDay(x).getWeather().setIconPic(Drawable.createFromStream(content, "src"));
+                }
 
 
                 return 0l;
@@ -220,17 +242,20 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Long result) {
             if (result != 1l) {
                 cityText.setText(weather.getCityInfo().getName());
-                weathertext.setText(weather.getDay(1).getWeather().getWeatherStat());
-                weatherDes.setText(weather.getDay(1).getWeather().getWeatherDes());
-                temp.setText(Double.toString(weather.getDay(1).getTempDay().getDay()));
-                /*DataBaseHelper dbHelper = new DataBaseHelper(getApplicationContext());
+                weathertext.setText(weather.getDay(0).getWeather().getWeatherStat());
+                weatherDes.setText(weather.getDay(0).getWeather().getWeatherDes());
+                temp.setText(Double.toString(weather.getDay(0).getTempDay().getDay()));
+                iconWeather.setBackground(weather.getDay(0).getWeather().getIconPic());
+
+                DBHelper dbHelper = new DBHelper(getApplicationContext());
                 dbHelper.clearTable();
-                dbHelper.addRows(photos);
+                dbHelper.addRows(weather);
+                dbHelper.printTable();
                 dbHelper.close();
-                showList();*/
+
                 List<day> tendays=weather.getTenDay();
                 ArrayAdapter<day> tendayArrayAdapter =
-                        new ArrayAdapter<day>(MainActivity.this,android.R.layout.simple_list_item_1,tendays);
+                        new weatherArrayAdapter(MainActivity.this,0,tendays);
                 ListView listview = (ListView) findViewById(android.R.id.list);
                 listview.setAdapter(tendayArrayAdapter);
 
@@ -265,4 +290,44 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    class weatherArrayAdapter extends ArrayAdapter<day>{
+
+        Context context;
+        List<day> objects;
+
+        public weatherArrayAdapter(Context context, int resource, List<day> objects) {
+            super(context, resource, objects);
+            this.context=context;
+            this.objects=objects;
+
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            day Day = objects.get(position);
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+
+            View view=inflater.inflate(R.layout.weather_item,null);
+
+            TextView Deg = (TextView) view.findViewById(R.id.tempNum);
+            TextView weatherTxt = (TextView) view.findViewById(R.id.weatherInfoText);
+            TextView weatherDesTxt =(TextView) view.findViewById(R.id.weatherDesTxt);
+            FrameLayout iconW = (FrameLayout) view.findViewById(R.id.wIcon2);
+
+            Deg.setText(Double.toString(Day.getTempDay().getDay()));
+            weatherTxt.setText(Day.getWeather().getWeatherStat());
+            weatherDesTxt.setText(Day.getWeather().getWeatherDes());
+            iconW.setBackground(Day.getWeather().getIconPic());
+
+           /* DBHelper dbHelper = new DBHelper(MainActivity.this);
+            Cursor cursor = dbHelper.getAllRows();
+            TextView Deg = (TextView) view.findViewById(R.id.tempNum); */
+
+
+
+            return view;
+        }
+    }
+
 }

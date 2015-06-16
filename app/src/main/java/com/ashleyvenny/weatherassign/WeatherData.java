@@ -45,6 +45,7 @@ public WeatherData(){
             cityInfo.setCountry(getString("country",Jcityinfo));
             cityInfo.setPopul(getInt("population",Jcityinfo));
 
+
             int arraysize = getInt("cnt",JObj);
             createWeatherArray(tenday,arraysize);
 
@@ -123,6 +124,7 @@ public WeatherData(){
             dayweather.setIcon(getString("icon",JSONWeatherInfo));
             dayweather.setWeatherStat(getString("main",JSONWeatherInfo));
             dayweather.setWeatherDes(getString("description",JSONWeatherInfo));
+            dayweather.setIcon_url(getString("icon",JSONWeatherInfo));
             //set the weather
             oneday.setWeather(dayweather);
 
