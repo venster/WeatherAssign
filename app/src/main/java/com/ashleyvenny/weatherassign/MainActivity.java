@@ -311,11 +311,109 @@ public class MainActivity extends ActionBarActivity {
             Deg.setText(Double.toString(Day.getTempDay().getDay()));
             weatherTxt.setText(Day.getWeather().getWeatherStat());
             weatherDesTxt.setText(Day.getWeather().getWeatherDes());
-            iconW.setBackground(Day.getWeather().getIconPic());
+
+            String s=Day.getWeather().getIcon_URL();
+            Log.d("THE URL",s);
+            //setting the icon
+            if(s=="01d")
+            {
+                iconW.setBackgroundResource(R.drawable.i01d);
+
+            }
+            else if(s=="01n")
+            {
+                iconW.setBackgroundResource(R.drawable.i01n);
+
+            }
+            else if(s=="02d")
+            {
+                iconW.setBackgroundResource(R.drawable.i02d);
+
+            }
+            else if(s=="02n")
+            {
+                iconW.setBackgroundResource(R.drawable.i02n);
+
+            }
+            else if(s=="03d")
+            {
+                iconW.setBackgroundResource(R.drawable.i03d);
+
+            }
+            else if(s=="03n")
+            {
+                iconW.setBackgroundResource(R.drawable.i03n);
+
+            }
+            else if(s=="04d")
+            {
+                iconW.setBackgroundResource(R.drawable.i04d);
+
+            }
+            else if(s=="04n")
+            {
+                iconW.setBackgroundResource(R.drawable.i04n);
+
+            }
+            else if(s=="09d")
+            {
+                iconW.setBackgroundResource(R.drawable.i09d);
+
+            }
+            else if(s=="09n")
+            {
+                iconW.setBackgroundResource(R.drawable.i09n);
+
+            }
+            else if(s=="10d")
+            {
+                iconW.setBackgroundResource(R.drawable.i10d);
+
+            }
+            else if(s=="10n")
+            {
+                iconW.setBackgroundResource(R.drawable.i10n);
+
+            }
+            else if(s=="11d")
+            {
+                iconW.setBackgroundResource(R.drawable.i11d);
+
+            }
+            else if(s=="11n")
+            {
+                iconW.setBackgroundResource(R.drawable.i11n);
+
+            }
+            else if(s=="13d")
+            {
+                iconW.setBackgroundResource(R.drawable.i13d);
+
+            }
+            else if(s=="13n")
+            {
+                iconW.setBackgroundResource(R.drawable.i13n);
+
+            }
+            else if(s=="50d")
+            {
+                iconW.setBackgroundResource(R.drawable.i50d);
+
+            }
+            else
+            {
+                iconW.setBackgroundResource(R.drawable.i50n);
+
+            }
+
+
 
 
             return view;
         }
     }
+
+
+
 
 }

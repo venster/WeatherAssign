@@ -67,7 +67,7 @@ public class DBHelper extends SQLiteOpenHelper{
             cv.put(Contract.PhotoEntry.DEGREE, data.getDay(i).getTempDay().getDay());
             cv.put(Contract.PhotoEntry.WEATHER, data.getDay(i).getWeather().getWeatherStat());
             cv.put(Contract.PhotoEntry.WEATHER_DES, data.getDay(i).getWeather().getWeatherDes());
-            cv.put(Contract.PhotoEntry.ICON_URL, data.getDay(i).getWeather().getIcon_URL());
+            cv.put(Contract.PhotoEntry.ICON_URL, data.getDay(i).getWeather().getIcon());
 
 
             db.insert(Contract.PhotoEntry.TABLE_NAME, null, cv);
