@@ -7,12 +7,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ashleyvo on 6/14/15.
  */
 public class DBHelper extends SQLiteOpenHelper{
+
+    ArrayList<day> arrayData = new ArrayList<day>();
+
+
 
         private String[] projection = {
                 Contract.PhotoEntry._ID,
@@ -124,7 +129,33 @@ public class DBHelper extends SQLiteOpenHelper{
         }
 
 
+
+    public List<day> retrieveData() {
+
+        SQLiteDatabase db = getWritableDatabase();
+        day daydata=new day();
+        dayWeather weatherEntry=new dayWeather();
+        tempOfDay tempEntry = new tempOfDay();
+        Cursor cursor = db.rawQuery(SQL_SELECT_ALL, null);
+        if (cursor.moveToFirst()) {
+
+            while (cursor.isAfterLast() == false) {
+
+                weatherEntry.setIcon_url(cursor.getString(cursor.getColumnIndex(Contract.PhotoEntry.ICON_URL)));
+                weatherEntry.setWeatherDes(cursor.getString(cursor.getColumnIndex(Contract.PhotoEntry.WEATHER_DES)));
+                weatherEntry.setWeatherStat(cursor.getString(cursor.getColumnIndex(Contract.PhotoEntry.WEATHER)));
+                tempEntry.setDay(cursor.getDouble(cursor.getColumnIndex(Contract.PhotoEntry.DEGREE)));
+
+                daydata.setWeather(weatherEntry);
+                daydata.setTempDay(tempEntry);
+                arrayData.add(daydata);
+                cursor.moveToNext();
+            }
+        }
+
+        return arrayData;
     }
+}
 
 
 

@@ -49,7 +49,7 @@ public class MainActivity extends ActionBarActivity {
     private TextView temp;
     private TextView weathertext;
     private TextView weatherDes;
-    private coordinate coord=new coordinate(0,0);
+    private coordinate coord = new coordinate(0, 0);
     private Button button;
 
     HttpURLConnection connection = null;
@@ -58,10 +58,9 @@ public class MainActivity extends ActionBarActivity {
     URL picURL;
 
 
-    WeatherData weather= new WeatherData(); //all of the weather data with city info
+    WeatherData weather = new WeatherData(); //all of the weather data with city info
 
     private ProgressBar progressLoading;
-
 
 
     @Override
@@ -69,20 +68,18 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        cityText=(TextView) findViewById(R.id.textViewLoc);
+        cityText = (TextView) findViewById(R.id.textViewLoc);
         temp = (TextView) findViewById(R.id.textViewTemp);
         weathertext = (TextView) findViewById(R.id.textViewDescrip);
         weatherDes = (TextView) findViewById(R.id.textViewDescrip2);
-        button= (Button) findViewById(R.id.button);
+        button = (Button) findViewById(R.id.button);
         progressLoading = (ProgressBar) findViewById(R.id.progressBar);
 
-        iconWeather= (FrameLayout) findViewById(R.id.wIcon);
+        iconWeather = (FrameLayout) findViewById(R.id.wIcon);
 
 
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 50000, 10,locationListener);
-
-
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 50000, 10, locationListener);
 
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -99,13 +96,9 @@ public class MainActivity extends ActionBarActivity {
         });
 
 
-
-
-
-
     }
 
-    public void startLoadTask(Context c){
+    public void startLoadTask(Context c) {
         if (isOnline()) {
             LoadData task = new LoadData();
             task.execute();
@@ -120,6 +113,7 @@ public class MainActivity extends ActionBarActivity {
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
     }
+
     LocationListener locationListener = new LocationListener() {
         @Override
         //Get GPS Information here
@@ -129,9 +123,6 @@ public class MainActivity extends ActionBarActivity {
             //weathertext.setText(Double.toString(coord.getLat()));
             //temp.setText(Double.toString(location.getLatitude()));
             startLoadTask(MainActivity.this);
-
-
-
 
 
         }
@@ -150,7 +141,6 @@ public class MainActivity extends ActionBarActivity {
             notEnabled.setVisibility((View.INVISIBLE)); */
 
 
-
         }
 
         @Override
@@ -163,6 +153,7 @@ public class MainActivity extends ActionBarActivity {
             sign.setImageResource(R.drawable.no_gps);*/
         }
     };
+
     private class LoadData extends AsyncTask<String, Long, Long> {
         HttpURLConnection connection = null;
 
@@ -178,66 +169,67 @@ public class MainActivity extends ActionBarActivity {
             super.onProgressUpdate(values);
         }
 
-    protected Long doInBackground(String... strings) {
-         String BASE_URL= "http://api.openweathermap.org/data/2.5/forecast/daily?lat=";
-        String BASE_URL2="&lon=";
-        String BASE_URL3="&cnt=10&mode=json&units=imperial";
+        protected Long doInBackground(String... strings) {
+            String BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=";
+            String BASE_URL2 = "&lon=";
+            String BASE_URL3 = "&cnt=10&mode=json&units=imperial";
 
 //            String dataString = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api+key=" +
 //                   Constants.API_KEY + "&per_page=" + Constants.NUM_PHOTOS + "&format=json&nojsoncallback=1";
 
-        try {
-            URL dataUrl = new URL(BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
-            Log.d("URL",BASE_URL+coord.getLat()+BASE_URL2+coord.getLong()+BASE_URL3);
-            connection = (HttpURLConnection) dataUrl.openConnection();
-            connection.connect();
-            int status = connection.getResponseCode();
-            //Log.d("TAG", "status " + status);
-            //if it is successful
-            if (status == 200) {
-                InputStream is = connection.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                String responseString;
-                StringBuilder sb = new StringBuilder();
+            try {
+                URL dataUrl = new URL(BASE_URL + coord.getLat() + BASE_URL2 + coord.getLong() + BASE_URL3);
+                Log.d("URL", BASE_URL + coord.getLat() + BASE_URL2 + coord.getLong() + BASE_URL3);
+                connection = (HttpURLConnection) dataUrl.openConnection();
+                connection.connect();
+                int status = connection.getResponseCode();
+                //Log.d("TAG", "status " + status);
+                //if it is successful
+                if (status == 200) {
+                    InputStream is = connection.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    String responseString;
+                    StringBuilder sb = new StringBuilder();
 
-                while ((responseString = reader.readLine()) != null) {
-                    sb = sb.append(responseString);
+                    while ((responseString = reader.readLine()) != null) {
+                        sb = sb.append(responseString);
+                    }
+                    String photoData = sb.toString();
+
+                    // Log.d("TAG", photoData);
+                    weather.parseInfo(photoData);
+
+                    Log.d("AFTER PARSE", weather.getDay(1).getWeather().getWeatherStat());
+                    //make iconlist
+                    for (int x = 0; x < weather.getTenDay().size(); x++) {
+                        picURL = new URL(weather.getDay(x).getWeather().getIcon_URL());
+                        InputStream content = (InputStream) picURL.getContent();
+                        weather.getDay(x).getWeather().setIconPic(Drawable.createFromStream(content, "src"));
+                    }
+
+
+                    return 0l;
+                } else {
+                    return 1l;
                 }
-                String photoData = sb.toString();
+            } catch (MalformedURLException e) {
 
-               // Log.d("TAG", photoData);
-                weather.parseInfo(photoData);
-
-                Log.d("AFTER PARSE", weather.getDay(1).getWeather().getWeatherStat());
-                //make iconlist
-                for(int x=0;x<weather.getTenDay().size();x++) {
-                  picURL = new URL(weather.getDay(x).getWeather().getIcon_URL());
-                  InputStream content = (InputStream) picURL.getContent();
-                  weather.getDay(x).getWeather().setIconPic(Drawable.createFromStream(content, "src"));
-                }
-
-
-                return 0l;
-            } else {
+                e.printStackTrace();
                 return 1l;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return 1l;
+            } catch (JSONException e) {
+                Log.d("TAG", "failparse");
+                e.printStackTrace();
+                return 1l;
+            } finally {
+                if (connection != null)
+                    connection.disconnect();
             }
-        } catch (MalformedURLException e) {
 
-            e.printStackTrace();
-            return 1l;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 1l;
-        } catch (JSONException e) {
-            Log.d("TAG", "failparse");
-            e.printStackTrace();
-            return 1l;
-        } finally {
-            if (connection != null)
-                connection.disconnect();
         }
 
-    }
         @Override
         protected void onPostExecute(Long result) {
             if (result != 1l) {
@@ -251,14 +243,14 @@ public class MainActivity extends ActionBarActivity {
                 dbHelper.clearTable();
                 dbHelper.addRows(weather);
                 dbHelper.printTable();
+                List<day> listdata = dbHelper.retrieveData();
                 dbHelper.close();
 
-                List<day> tendays=weather.getTenDay();
+
                 ArrayAdapter<day> tendayArrayAdapter =
-                        new weatherArrayAdapter(MainActivity.this,0,tendays);
+                        new weatherArrayAdapter(MainActivity.this, 0, listdata); //tendays is the array of data
                 ListView listview = (ListView) findViewById(android.R.id.list);
                 listview.setAdapter(tendayArrayAdapter);
-
 
 
             } else {
@@ -291,39 +283,35 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class weatherArrayAdapter extends ArrayAdapter<day>{
+    class weatherArrayAdapter extends ArrayAdapter<day> {
 
         Context context;
         List<day> objects;
 
         public weatherArrayAdapter(Context context, int resource, List<day> objects) {
             super(context, resource, objects);
-            this.context=context;
-            this.objects=objects;
+            this.context = context;
+            this.objects = objects;
 
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+
             day Day = objects.get(position);
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
-            View view=inflater.inflate(R.layout.weather_item,null);
+            View view = inflater.inflate(R.layout.weather_item, null);
 
             TextView Deg = (TextView) view.findViewById(R.id.tempNum);
             TextView weatherTxt = (TextView) view.findViewById(R.id.weatherInfoText);
-            TextView weatherDesTxt =(TextView) view.findViewById(R.id.weatherDesTxt);
+            TextView weatherDesTxt = (TextView) view.findViewById(R.id.weatherDesTxt);
             FrameLayout iconW = (FrameLayout) view.findViewById(R.id.wIcon2);
 
             Deg.setText(Double.toString(Day.getTempDay().getDay()));
             weatherTxt.setText(Day.getWeather().getWeatherStat());
             weatherDesTxt.setText(Day.getWeather().getWeatherDes());
             iconW.setBackground(Day.getWeather().getIconPic());
-
-           /* DBHelper dbHelper = new DBHelper(MainActivity.this);
-            Cursor cursor = dbHelper.getAllRows();
-            TextView Deg = (TextView) view.findViewById(R.id.tempNum); */
-
 
 
             return view;
